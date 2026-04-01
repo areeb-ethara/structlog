@@ -1,8 +1,3 @@
-# SPDX-License-Identifier: MIT OR Apache-2.0
-# This file is dual licensed under the terms of the Apache License, Version
-# 2.0, and the MIT License.  See the LICENSE file in the root of this
-# repository for complete details.
-
 """
 Type information used throughout *structlog*.
 
@@ -11,92 +6,29 @@ probably change to something more elegant.
 
 .. versionadded:: 22.2.0
 """
-
 from __future__ import annotations
-
 import sys
-
 from collections.abc import Mapping, MutableMapping
 from types import TracebackType
-from typing import (
-    Any,
-    Callable,
-    Optional,
-    Protocol,
-    TextIO,
-    Union,
-    runtime_checkable,
-)
-
-
+from typing import Any, Callable, Optional, Protocol, TextIO, Union, runtime_checkable
 if sys.version_info >= (3, 11):
     from typing import Self
 else:
     from typing_extensions import Self
-
-
 WrappedLogger = Any
-"""
-A logger that is wrapped by a bound logger and is ultimately responsible for
-the output of the log entries.
-
-*structlog* makes *no* assumptions about it.
-
-.. versionadded:: 20.2.0
-"""
-
-
+'\nA logger that is wrapped by a bound logger and is ultimately responsible for\nthe output of the log entries.\n\n*structlog* makes *no* assumptions about it.\n\n.. versionadded:: 20.2.0\n'
 Context = Union[dict[str, Any], dict[Any, Any]]
-"""
-A dict-like context carrier.
-
-.. versionadded:: 20.2.0
-"""
-
-
+'\nA dict-like context carrier.\n\n.. versionadded:: 20.2.0\n'
 EventDict = MutableMapping[str, Any]
-"""
-An event dictionary as it is passed into processors.
-
-It's created by copying the configured `Context` but doesn't need to support
-copy itself.
-
-.. versionadded:: 20.2.0
-"""
-
-ProcessorReturnValue = Union[
-    Mapping[str, Any], str, bytes, bytearray, tuple[Any, ...]
-]
-"""
-A value returned by a processor.
-"""
-
+"\nAn event dictionary as it is passed into processors.\n\nIt's created by copying the configured `Context` but doesn't need to support\ncopy itself.\n\n.. versionadded:: 20.2.0\n"
+ProcessorReturnValue = Union[Mapping[str, Any], str, bytes, bytearray, tuple[Any, ...]]
+'\nA value returned by a processor.\n'
 Processor = Callable[[WrappedLogger, str, EventDict], ProcessorReturnValue]
-"""
-A callable that is part of the processor chain.
-
-See :doc:`processors`.
-
-.. versionadded:: 20.2.0
-"""
-
+'\nA callable that is part of the processor chain.\n\nSee :doc:`processors`.\n\n.. versionadded:: 20.2.0\n'
 ExcInfo = tuple[type[BaseException], BaseException, Optional[TracebackType]]
-"""
-An exception info tuple as returned by `sys.exc_info`.
-
-.. versionadded:: 20.2.0
-"""
-
-
+'\nAn exception info tuple as returned by `sys.exc_info`.\n\n.. versionadded:: 20.2.0\n'
 ExceptionRenderer = Callable[[TextIO, ExcInfo], None]
-"""
-A callable that pretty-prints an `ExcInfo` into a file-like object.
-
-Used by `structlog.dev.ConsoleRenderer`.
-
-.. versionadded:: 21.2.0
-"""
-
+'\nA callable that pretty-prints an `ExcInfo` into a file-like object.\n\nUsed by `structlog.dev.ConsoleRenderer`.\n\n.. versionadded:: 21.2.0\n'
 
 @runtime_checkable
 class ExceptionTransformer(Protocol):
@@ -120,8 +52,8 @@ class ExceptionTransformer(Protocol):
     .. versionadded:: 22.1.0
     """
 
-    def __call__(self, exc_info: ExcInfo) -> Any: ...
-
+    def __call__(self, exc_info: ExcInfo) -> Any:
+        ...
 
 @runtime_checkable
 class BindableLogger(Protocol):
@@ -133,16 +65,20 @@ class BindableLogger(Protocol):
     """
 
     @property
-    def _context(self) -> Context: ...
+    def _context(self) -> Context:
+        pass
 
-    def bind(self, **new_values: Any) -> Self: ...
+    def bind(self, **new_values: Any) -> Self:
+        pass
 
-    def unbind(self, *keys: str) -> Self: ...
+    def unbind(self, *keys: str) -> Self:
+        pass
 
-    def try_unbind(self, *keys: str) -> Self: ...
+    def try_unbind(self, *keys: str) -> Self:
+        pass
 
-    def new(self, **new_values: Any) -> Self: ...
-
+    def new(self, **new_values: Any) -> Self:
+        pass
 
 class FilteringBoundLogger(BindableLogger, Protocol):
     """
@@ -169,6 +105,7 @@ class FilteringBoundLogger(BindableLogger, Protocol):
 
         .. versionadded:: 22.1.0
         """
+        pass
 
     def unbind(self, *keys: str) -> FilteringBoundLogger:
         """
@@ -176,6 +113,7 @@ class FilteringBoundLogger(BindableLogger, Protocol):
 
         .. versionadded:: 22.1.0
         """
+        pass
 
     def try_unbind(self, *keys: str) -> FilteringBoundLogger:
         """
@@ -183,6 +121,7 @@ class FilteringBoundLogger(BindableLogger, Protocol):
 
         .. versionadded:: 22.1.0
         """
+        pass
 
     def new(self, **new_values: Any) -> FilteringBoundLogger:
         """
@@ -190,6 +129,7 @@ class FilteringBoundLogger(BindableLogger, Protocol):
 
         .. versionadded:: 22.1.0
         """
+        pass
 
     def is_enabled_for(self, level: int) -> bool:
         """
@@ -197,6 +137,7 @@ class FilteringBoundLogger(BindableLogger, Protocol):
 
         .. versionadded:: 25.1.0
         """
+        pass
 
     def get_effective_level(self) -> int:
         """
@@ -204,11 +145,13 @@ class FilteringBoundLogger(BindableLogger, Protocol):
 
         .. versionadded:: 25.1.0
         """
+        pass
 
     def debug(self, event: str, *args: Any, **kw: Any) -> Any:
         """
         Log ``event % args`` with **kw** at **debug** level.
         """
+        pass
 
     async def adebug(self, event: str, *args: Any, **kw: Any) -> Any:
         """
@@ -216,11 +159,13 @@ class FilteringBoundLogger(BindableLogger, Protocol):
 
         ..versionadded:: 22.2.0
         """
+        pass
 
     def info(self, event: str, *args: Any, **kw: Any) -> Any:
         """
         Log ``event % args`` with **kw** at **info** level.
         """
+        pass
 
     async def ainfo(self, event: str, *args: Any, **kw: Any) -> Any:
         """
@@ -228,11 +173,13 @@ class FilteringBoundLogger(BindableLogger, Protocol):
 
         ..versionadded:: 22.2.0
         """
+        pass
 
     def warning(self, event: str, *args: Any, **kw: Any) -> Any:
         """
         Log ``event % args`` with **kw** at **warn** level.
         """
+        pass
 
     async def awarning(self, event: str, *args: Any, **kw: Any) -> Any:
         """
@@ -240,11 +187,13 @@ class FilteringBoundLogger(BindableLogger, Protocol):
 
         ..versionadded:: 22.2.0
         """
+        pass
 
     def warn(self, event: str, *args: Any, **kw: Any) -> Any:
         """
         Log ``event % args`` with **kw** at **warn** level.
         """
+        pass
 
     async def awarn(self, event: str, *args: Any, **kw: Any) -> Any:
         """
@@ -252,11 +201,13 @@ class FilteringBoundLogger(BindableLogger, Protocol):
 
         ..versionadded:: 22.2.0
         """
+        pass
 
     def error(self, event: str, *args: Any, **kw: Any) -> Any:
         """
         Log ``event % args`` with **kw** at **error** level.
         """
+        pass
 
     async def aerror(self, event: str, *args: Any, **kw: Any) -> Any:
         """
@@ -264,16 +215,19 @@ class FilteringBoundLogger(BindableLogger, Protocol):
 
         ..versionadded:: 22.2.0
         """
+        pass
 
     def err(self, event: str, *args: Any, **kw: Any) -> Any:
         """
         Log ``event % args`` with **kw** at **error** level.
         """
+        pass
 
     def fatal(self, event: str, *args: Any, **kw: Any) -> Any:
         """
         Log ``event % args`` with **kw** at **critical** level.
         """
+        pass
 
     async def afatal(self, event: str, *args: Any, **kw: Any) -> Any:
         """
@@ -281,12 +235,14 @@ class FilteringBoundLogger(BindableLogger, Protocol):
 
         ..versionadded:: 22.2.0
         """
+        pass
 
     def exception(self, event: str, *args: Any, **kw: Any) -> Any:
         """
         Log ``event % args`` with **kw** at **error** level and ensure that
         ``exc_info`` is set in the event dictionary.
         """
+        pass
 
     async def aexception(self, event: str, *args: Any, **kw: Any) -> Any:
         """
@@ -295,11 +251,13 @@ class FilteringBoundLogger(BindableLogger, Protocol):
 
         ..versionadded:: 22.2.0
         """
+        pass
 
     def critical(self, event: str, *args: Any, **kw: Any) -> Any:
         """
         Log ``event % args`` with **kw** at **critical** level.
         """
+        pass
 
     async def acritical(self, event: str, *args: Any, **kw: Any) -> Any:
         """
@@ -307,23 +265,28 @@ class FilteringBoundLogger(BindableLogger, Protocol):
 
         ..versionadded:: 22.2.0
         """
+        pass
 
     def msg(self, event: str, *args: Any, **kw: Any) -> Any:
         """
         Log ``event % args`` with **kw** at **info** level.
         """
+        pass
 
     async def amsg(self, event: str, *args: Any, **kw: Any) -> Any:
         """
         Log ``event % args`` with **kw** at **info** level.
         """
+        pass
 
     def log(self, level: int, event: str, *args: Any, **kw: Any) -> Any:
         """
         Log ``event % args`` with **kw** at *level*.
         """
+        pass
 
     async def alog(self, level: int, event: str, *args: Any, **kw: Any) -> Any:
         """
         Log ``event % args`` with **kw** at *level*.
         """
+        pass

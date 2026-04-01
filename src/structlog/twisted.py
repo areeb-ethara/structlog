@@ -1,33 +1,22 @@
-# SPDX-License-Identifier: MIT OR Apache-2.0
-# This file is dual licensed under the terms of the Apache License, Version
-# 2.0, and the MIT License.  See the LICENSE file in the root of this
-# repository for complete details.
-
 """
 Processors and tools specific to the `Twisted <https://twisted.org/>`_
 networking engine.
 
 See also :doc:`structlog's Twisted support <twisted>`.
 """
-
 from __future__ import annotations
-
 import json
 import sys
-
 from collections.abc import Sequence
 from typing import Any, Callable, TextIO
-
 from twisted.python import log
 from twisted.python.failure import Failure
 from twisted.python.log import ILogObserver, textFromEventDict
 from zope.interface import implementer
-
 from ._base import BoundLoggerBase
 from ._config import _BUILTIN_DEFAULT_PROCESSORS
 from .processors import JSONRenderer as GenericJSONRenderer
 from .typing import EventDict, WrappedLogger
-
 
 class BoundLogger(BoundLoggerBase):
     """
@@ -44,18 +33,17 @@ class BoundLogger(BoundLoggerBase):
 
     """
 
-    def msg(self, event: str | None = None, **kw: Any) -> Any:
+    def msg(self, event: str | None=None, **kw: Any) -> Any:
         """
         Process event and call ``log.msg()`` with the result.
         """
-        return self._proxy_to_logger("msg", event, **kw)
+        pass
 
-    def err(self, event: str | None = None, **kw: Any) -> Any:
+    def err(self, event: str | None=None, **kw: Any) -> Any:
         """
         Process event and call ``log.err()`` with the result.
         """
-        return self._proxy_to_logger("err", event, **kw)
-
+        pass
 
 class LoggerFactory:
     """
@@ -76,10 +64,7 @@ class LoggerFactory:
             Added support for optional positional arguments.
         """
         return log
-
-
 _FAIL_TYPES = (BaseException, Failure)
-
 
 def _extractStuffAndWhy(eventDict: EventDict) -> tuple[Any, Any, EventDict]:
     """
@@ -88,35 +73,7 @@ def _extractStuffAndWhy(eventDict: EventDict) -> tuple[Any, Any, EventDict]:
 
     **Modifies** *eventDict*!
     """
-    _stuff = eventDict.pop("_stuff", None)
-    _why = eventDict.pop("_why", None)
-    event = eventDict.pop("event", None)
-
-    if isinstance(_stuff, _FAIL_TYPES) and isinstance(event, _FAIL_TYPES):
-        raise ValueError("Both _stuff and event contain an Exception/Failure.")
-
-    # `log.err('event', _why='alsoEvent')` is ambiguous.
-    if _why and isinstance(event, str):
-        raise ValueError("Both `_why` and `event` supplied.")
-
-    # Two failures are ambiguous too.
-    if not isinstance(_stuff, _FAIL_TYPES) and isinstance(event, _FAIL_TYPES):
-        _why = _why or "error"
-        _stuff = event
-
-    if isinstance(event, str):
-        _why = event
-
-    if not _stuff and sys.exc_info() != (None, None, None):
-        _stuff = Failure()  # type: ignore[no-untyped-call]
-
-    # Either we used the error ourselves or the user supplied one for
-    # formatting.  Avoid log.err() to dump another traceback into the log.
-    if isinstance(_stuff, BaseException) and not isinstance(_stuff, Failure):
-        _stuff = Failure(_stuff)  # type: ignore[no-untyped-call]
-
-    return _stuff, _why, eventDict
-
+    pass
 
 class ReprWrapper:
     """
@@ -140,13 +97,10 @@ class ReprWrapper:
         """
         Check for equality, just for tests.
         """
-        return (
-            isinstance(other, self.__class__) and self.string == other.string
-        )
+        return isinstance(other, self.__class__) and self.string == other.string
 
     def __repr__(self) -> str:
         return self.string
-
 
 class JSONRenderer(GenericJSONRenderer):
     """
@@ -170,31 +124,16 @@ class JSONRenderer(GenericJSONRenderer):
     `plainJSONStdOutLogger` for pure-JSON logs.
     """
 
-    def __call__(  # type: ignore[override]
-        self,
-        logger: WrappedLogger,
-        name: str,
-        eventDict: EventDict,
-    ) -> tuple[Sequence[Any], dict[str, Any]]:
+    def __call__(self, logger: WrappedLogger, name: str, eventDict: EventDict) -> tuple[Sequence[Any], dict[str, Any]]:
         _stuff, _why, eventDict = _extractStuffAndWhy(eventDict)
-        if name == "err":
-            eventDict["event"] = _why
+        if name == 'err':
+            eventDict['event'] = _why
             if isinstance(_stuff, Failure):
-                eventDict["exception"] = _stuff.getTraceback(detail="verbose")
-                _stuff.cleanFailure()  # type: ignore[no-untyped-call]
+                eventDict['exception'] = _stuff.getTraceback(detail='verbose')
+                _stuff.cleanFailure()
         else:
-            eventDict["event"] = _why
-        return (
-            (
-                ReprWrapper(
-                    GenericJSONRenderer.__call__(  # type: ignore[arg-type]
-                        self, logger, name, eventDict
-                    )
-                ),
-            ),
-            {"_structlog": True},
-        )
-
+            eventDict['event'] = _why
+        return ((ReprWrapper(GenericJSONRenderer.__call__(self, logger, name, eventDict)),), {'_structlog': True})
 
 @implementer(ILogObserver)
 class PlainFileLogObserver:
@@ -215,12 +154,8 @@ class PlainFileLogObserver:
         self._flush = file.flush
 
     def __call__(self, eventDict: EventDict) -> None:
-        self._write(
-            textFromEventDict(eventDict)  # type: ignore[arg-type, operator]
-            + "\n",
-        )
+        self._write(textFromEventDict(eventDict) + '\n')
         self._flush()
-
 
 @implementer(ILogObserver)
 class JSONLogObserverWrapper:
@@ -241,21 +176,10 @@ class JSONLogObserverWrapper:
         self._observer = observer
 
     def __call__(self, eventDict: EventDict) -> str:
-        if "_structlog" not in eventDict:
-            eventDict["message"] = (
-                json.dumps(
-                    {
-                        "event": textFromEventDict(
-                            eventDict  # type: ignore[arg-type]
-                        ),
-                        "system": eventDict.get("system"),
-                    }
-                ),
-            )
-            eventDict["_structlog"] = True
-
+        if '_structlog' not in eventDict:
+            eventDict['message'] = (json.dumps({'event': textFromEventDict(eventDict), 'system': eventDict.get('system')}),)
+            eventDict['_structlog'] = True
         return self._observer(eventDict)
-
 
 def plainJSONStdOutLogger() -> JSONLogObserverWrapper:
     """
@@ -279,8 +203,7 @@ def plainJSONStdOutLogger() -> JSONLogObserverWrapper:
 
     .. versionadded:: 0.2.0
     """
-    return JSONLogObserverWrapper(PlainFileLogObserver(sys.stdout))
-
+    pass
 
 class EventAdapter:
     """
@@ -300,31 +223,12 @@ class EventAdapter:
     fully support the original behaviors of ``log.msg()`` and ``log.err()``.
     """
 
-    def __init__(
-        self,
-        dictRenderer: (
-            Callable[[WrappedLogger, str, EventDict], str] | None
-        ) = None,
-    ) -> None:
+    def __init__(self, dictRenderer: Callable[[WrappedLogger, str, EventDict], str] | None=None) -> None:
         self._dictRenderer = dictRenderer or _BUILTIN_DEFAULT_PROCESSORS[-1]
 
-    def __call__(
-        self, logger: WrappedLogger, name: str, eventDict: EventDict
-    ) -> Any:
-        if name == "err":
-            # This aspires to handle the following cases correctly:
-            #   1. log.err(failure, _why='event', **kw)
-            #   2. log.err('event', **kw)
-            #   3. log.err(_stuff=failure, _why='event', **kw)
+    def __call__(self, logger: WrappedLogger, name: str, eventDict: EventDict) -> Any:
+        if name == 'err':
             _stuff, _why, eventDict = _extractStuffAndWhy(eventDict)
-            eventDict["event"] = _why
-
-            return (
-                (),
-                {
-                    "_stuff": _stuff,
-                    "_why": self._dictRenderer(logger, name, eventDict),
-                },
-            )
-
+            eventDict['event'] = _why
+            return ((), {'_stuff': _stuff, '_why': self._dictRenderer(logger, name, eventDict)})
         return self._dictRenderer(logger, name, eventDict)

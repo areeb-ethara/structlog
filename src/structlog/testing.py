@@ -1,8 +1,3 @@
-# SPDX-License-Identifier: MIT OR Apache-2.0
-# This file is dual licensed under the terms of the Apache License, Version
-# 2.0, and the MIT License.  See the LICENSE file in the root of this
-# repository for complete details.
-
 """
 Helpers to test your application's logging behavior.
 
@@ -10,29 +5,15 @@ Helpers to test your application's logging behavior.
 
 See :doc:`testing`.
 """
-
 from __future__ import annotations
-
 from collections.abc import Generator, Iterable
 from contextlib import contextmanager
 from typing import Any, NamedTuple, NoReturn
-
 from ._config import configure, get_config
 from ._log_levels import map_method_name
 from .exceptions import DropEvent
 from .typing import EventDict, Processor, WrappedLogger
-
-
-__all__ = [
-    "CapturedCall",
-    "CapturingLogger",
-    "CapturingLoggerFactory",
-    "LogCapture",
-    "ReturnLogger",
-    "ReturnLoggerFactory",
-    "capture_logs",
-]
-
+__all__ = ['CapturedCall', 'CapturingLogger', 'CapturingLoggerFactory', 'LogCapture', 'ReturnLogger', 'ReturnLoggerFactory', 'capture_logs']
 
 class LogCapture:
     """
@@ -48,25 +29,18 @@ class LogCapture:
        Added mapping from "exception" to "error"
        Added mapping from "warn" to "warning"
     """
-
     entries: list[EventDict]
 
     def __init__(self) -> None:
         self.entries = []
 
-    def __call__(
-        self, _: WrappedLogger, method_name: str, event_dict: EventDict
-    ) -> NoReturn:
-        event_dict["log_level"] = map_method_name(method_name)
+    def __call__(self, _: WrappedLogger, method_name: str, event_dict: EventDict) -> NoReturn:
+        event_dict['log_level'] = map_method_name(method_name)
         self.entries.append(event_dict)
-
         raise DropEvent
 
-
 @contextmanager
-def capture_logs(
-    processors: Iterable[Processor] = (),
-) -> Generator[list[EventDict], None, None]:
+def capture_logs(processors: Iterable[Processor]=()) -> Generator[list[EventDict], None, None]:
     """
     Context manager that appends all logging statements to its yielded list
     while it is active. Disables all configured processors for the duration
@@ -80,25 +54,7 @@ def capture_logs(
     .. versionadded:: 20.1.0
     .. versionadded:: 25.5.0 *processors* parameter
     """
-    cap = LogCapture()
-    # Modify `_Configuration.default_processors` set via `configure` but always
-    # keep the list instance intact to not break references held by bound
-    # loggers.
-    configured_processors = get_config()["processors"]
-    old_processors = configured_processors.copy()
-    try:
-        # clear processors list and use LogCapture for testing
-        configured_processors.clear()
-        configured_processors.extend(processors)
-        configured_processors.append(cap)
-        configure(processors=configured_processors)
-        yield cap.entries
-    finally:
-        # remove LogCapture and restore original processors
-        configured_processors.clear()
-        configured_processors.extend(old_processors)
-        configure(processors=configured_processors)
-
+    pass
 
 class ReturnLogger:
     """
@@ -118,21 +74,15 @@ class ReturnLogger:
         """
         Return tuple of ``args, kw`` or just ``args[0]`` if only one arg passed
         """
-        # Slightly convoluted for backwards compatibility.
-        if len(args) == 1 and not kw:
-            return args[0]
-
-        return args, kw
-
+        pass
     log = debug = info = warn = warning = msg
     fatal = failure = err = error = critical = exception = msg
 
-
 class ReturnLoggerFactory:
-    r"""
-    Produce and cache `ReturnLogger`\ s.
+    """
+    Produce and cache `ReturnLogger`\\ s.
 
-    To be used with `structlog.configure`\ 's *logger_factory*.
+    To be used with `structlog.configure`\\ 's *logger_factory*.
 
     Positional arguments are silently ignored.
 
@@ -144,7 +94,6 @@ class ReturnLoggerFactory:
 
     def __call__(self, *args: Any) -> ReturnLogger:
         return self._logger
-
 
 class CapturedCall(NamedTuple):
     """
@@ -161,11 +110,9 @@ class CapturedCall(NamedTuple):
 
     .. versionadded:: 20.2.0
     """
-
     method_name: str
     args: tuple[Any, ...]
     kwargs: dict[str, Any]
-
 
 class CapturingLogger:
     """
@@ -178,14 +125,13 @@ class CapturingLogger:
 
     .. versionadded:: 20.2.0
     """
-
     calls: list[CapturedCall]
 
     def __init__(self) -> None:
         self.calls = []
 
     def __repr__(self) -> str:
-        return f"<CapturingLogger with {len(self.calls)} call(s)>"
+        return f'<CapturingLogger with {len(self.calls)} call(s)>'
 
     def __getattr__(self, name: str) -> Any:
         """
@@ -194,25 +140,22 @@ class CapturingLogger:
 
         def log(*args: Any, **kw: Any) -> None:
             self.calls.append(CapturedCall(name, args, kw))
-
         return log
 
-
 class CapturingLoggerFactory:
-    r"""
-    Produce and cache `CapturingLogger`\ s.
+    """
+    Produce and cache `CapturingLogger`\\ s.
 
     Each factory produces and reuses only **one** logger.
 
     You can access it via the ``logger`` attribute.
 
-    To be used with `structlog.configure`\ 's *logger_factory*.
+    To be used with `structlog.configure`\\ 's *logger_factory*.
 
     Positional arguments are silently ignored.
 
     .. versionadded:: 20.2.0
     """
-
     logger: CapturingLogger
 
     def __init__(self) -> None:

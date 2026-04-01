@@ -1,29 +1,16 @@
-# SPDX-License-Identifier: MIT OR Apache-2.0
-# This file is dual licensed under the terms of the Apache License, Version
-# 2.0, and the MIT License.  See the LICENSE file in the root of this
-# repository for complete details.
-
 """
 Logger wrapper and helper class.
 """
-
 from __future__ import annotations
-
 import sys
-
 from collections.abc import Iterable, Mapping, Sequence
 from typing import Any
-
 from structlog.exceptions import DropEvent
-
 from .typing import BindableLogger, Context, Processor, WrappedLogger
-
-
 if sys.version_info >= (3, 11):
     from typing import Self
 else:
     from typing_extensions import Self
-
 
 class BoundLoggerBase:
     """
@@ -37,34 +24,20 @@ class BoundLoggerBase:
 
     See also `custom-wrappers`.
     """
-
     _logger: WrappedLogger
-    """
-    Wrapped logger.
+    '\n    Wrapped logger.\n\n    .. note::\n\n        Despite underscore available **read-only** to custom wrapper classes.\n\n        See also `custom-wrappers`.\n    '
 
-    .. note::
-
-        Despite underscore available **read-only** to custom wrapper classes.
-
-        See also `custom-wrappers`.
-    """
-
-    def __init__(
-        self,
-        logger: WrappedLogger,
-        processors: Iterable[Processor],
-        context: Context,
-    ):
+    def __init__(self, logger: WrappedLogger, processors: Iterable[Processor], context: Context):
         self._logger = logger
         self._processors = processors
         self._context = context
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(context={self._context!r}, processors={self._processors!r})>"
+        return f'<{self.__class__.__name__}(context={self._context!r}, processors={self._processors!r})>'
 
     def __eq__(self, other: object) -> bool:
         try:
-            return self._context == other._context  # type: ignore[attr-defined]
+            return self._context == other._context
         except AttributeError:
             return False
 
@@ -75,11 +48,7 @@ class BoundLoggerBase:
         """
         Return a new logger with *new_values* added to the existing ones.
         """
-        return self.__class__(
-            self._logger,
-            self._processors,
-            self._context.__class__(self._context, **new_values),
-        )
+        pass
 
     def unbind(self, *keys: str) -> Self:
         """
@@ -88,11 +57,7 @@ class BoundLoggerBase:
         Raises:
             KeyError: If the key is not part of the context.
         """
-        bl = self.bind()
-        for key in keys:
-            del bl._context[key]
-
-        return bl
+        pass
 
     def try_unbind(self, *keys: str) -> Self:
         """
@@ -100,11 +65,7 @@ class BoundLoggerBase:
 
         .. versionadded:: 18.2.0
         """
-        bl = self.bind()
-        for key in keys:
-            bl._context.pop(key, None)
-
-        return bl
+        pass
 
     def new(self, **new_values: Any) -> Self:
         """
@@ -114,15 +75,9 @@ class BoundLoggerBase:
         those wrapped by `structlog.threadlocal.wrap_dict` when threads
         are reused.
         """
-        self._context.clear()
+        pass
 
-        return self.bind(**new_values)
-
-    # Helper methods for sub-classing concrete BoundLoggers.
-
-    def _process_event(
-        self, method_name: str, event: str | None, event_kw: dict[str, Any]
-    ) -> tuple[Sequence[Any], Mapping[str, Any]]:
+    def _process_event(self, method_name: str, event: str | None, event_kw: dict[str, Any]) -> tuple[Sequence[Any], Mapping[str, Any]]:
         """
         Combines creates an ``event_dict`` and runs the chain.
 
@@ -163,36 +118,9 @@ class BoundLoggerBase:
         .. versionchanged:: 21.2.0
             Allow final processor to return a `bytearray`.
         """
-        # We're typing it as Any, because processors can return more than an
-        # EventDict.
-        event_dict: Any = self._context.copy()
-        event_dict.update(**event_kw)
+        pass
 
-        if event is not None:
-            event_dict["event"] = event
-        for proc in self._processors:
-            event_dict = proc(self._logger, method_name, event_dict)
-
-        if isinstance(event_dict, (str, bytes, bytearray)):
-            return (event_dict,), {}
-
-        if isinstance(event_dict, tuple):
-            # In this case we assume that the last processor returned a tuple
-            # of ``(args, kwargs)`` and pass it right through.
-            return event_dict
-
-        if isinstance(event_dict, dict):
-            return (), event_dict
-
-        msg = (
-            "Last processor didn't return an appropriate value.  "
-            "Valid return values are a dict, a tuple of (args, kwargs), bytes, or a str."
-        )
-        raise ValueError(msg)
-
-    def _proxy_to_logger(
-        self, method_name: str, event: str | None = None, **event_kw: Any
-    ) -> Any:
+    def _proxy_to_logger(self, method_name: str, event: str | None=None, **event_kw: Any) -> Any:
         """
         Run processor chain on event & call *method_name* on wrapped logger.
 
@@ -219,12 +147,7 @@ class BoundLoggerBase:
 
             See also `custom-wrappers`.
         """
-        try:
-            args, kw = self._process_event(method_name, event, event_kw)
-            return getattr(self._logger, method_name)(*args, **kw)
-        except DropEvent:
-            return None
-
+        pass
 
 def get_context(bound_logger: BindableLogger) -> Context:
     """
@@ -241,5 +164,4 @@ def get_context(bound_logger: BindableLogger) -> Context:
 
     .. versionadded:: 20.2.0
     """
-    # This probably will get more complicated in the future.
-    return bound_logger._context
+    pass

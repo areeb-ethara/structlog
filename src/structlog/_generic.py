@@ -1,19 +1,10 @@
-# SPDX-License-Identifier: MIT OR Apache-2.0
-# This file is dual licensed under the terms of the Apache License, Version
-# 2.0, and the MIT License.  See the LICENSE file in the root of this
-# repository for complete details.
-
 """
 Generic bound logger that can wrap anything.
 """
-
 from __future__ import annotations
-
 from functools import partial
 from typing import Any
-
 from structlog._base import BoundLoggerBase
-
 
 class BoundLogger(BoundLoggerBase):
     """
@@ -32,12 +23,10 @@ class BoundLogger(BoundLoggerBase):
         """
         If not done so yet, wrap the desired logger method & cache the result.
         """
-        if method_name == "__deepcopy__":
+        if method_name == '__deepcopy__':
             return None
-
         wrapped = partial(self._proxy_to_logger, method_name)
         setattr(self, method_name, wrapped)
-
         return wrapped
 
     def __getstate__(self) -> dict[str, Any]:

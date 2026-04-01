@@ -1,8 +1,3 @@
-# SPDX-License-Identifier: MIT OR Apache-2.0
-# This file is dual licensed under the terms of the Apache License, Version
-# 2.0, and the MIT License.  See the LICENSE file in the root of this
-# repository for complete details.
-
 """
 **Deprecated** primitives to keep context global but thread (and greenlet)
 local.
@@ -11,72 +6,31 @@ See `thread-local`, but please use :doc:`contextvars` instead.
 
 .. deprecated:: 22.1.0
 """
-
 from __future__ import annotations
-
 import contextlib
 import sys
 import threading
 import uuid
 import warnings
-
 from collections.abc import Generator, Iterator
 from typing import Any, TypeVar
-
 import structlog
-
 from ._config import BoundLoggerLazyProxy
 from .typing import BindableLogger, Context, EventDict, WrappedLogger
-
 
 def _determine_threadlocal() -> type[Any]:
     """
     Return a dict-like threadlocal storage depending on whether we run with
     greenlets or not.
     """
-    try:
-        from ._greenlets import GreenThreadLocal
-    except ImportError:
-        from threading import local
-
-        return local
-
-    return GreenThreadLocal  # pragma: no cover
-
-
+    pass
 ThreadLocal = _determine_threadlocal()
-
 
 def _deprecated() -> None:
     """
     Raise a warning with best-effort stacklevel adjustment.
     """
-    callsite = ""
-
-    with contextlib.suppress(Exception):
-        f = sys._getframe()
-        callsite = f.f_back.f_back.f_globals[  # type: ignore[union-attr]
-            "__name__"
-        ]
-
-    # Avoid double warnings if TL functions call themselves.
-    if callsite == "structlog.threadlocal":
-        return
-
-    stacklevel = 3
-    # If a function is used as a decorator, we need to add two stack levels.
-    # This logic will probably break eventually, but it's not worth any more
-    # complexity.
-    if callsite == "contextlib":
-        stacklevel += 2
-
-    warnings.warn(
-        "`structlog.threadlocal` is deprecated, please use "
-        "`structlog.contextvars` instead.",
-        DeprecationWarning,
-        stacklevel=stacklevel,
-    )
-
+    pass
 
 def wrap_dict(dict_class: type[Context]) -> type[Context]:
     """
@@ -89,18 +43,8 @@ def wrap_dict(dict_class: type[Context]) -> type[Context]:
 
     .. deprecated:: 22.1.0
     """
-    _deprecated()
-    Wrapped = type(
-        "WrappedDict-" + str(uuid.uuid4()), (_ThreadLocalDictWrapper,), {}
-    )
-    Wrapped._tl = ThreadLocal()  # type: ignore[attr-defined]
-    Wrapped._dict_class = dict_class  # type: ignore[attr-defined]
-
-    return Wrapped
-
-
-TLLogger = TypeVar("TLLogger", bound=BindableLogger)
-
+    pass
+TLLogger = TypeVar('TLLogger', bound=BindableLogger)
 
 def as_immutable(logger: TLLogger) -> TLLogger:
     """
@@ -115,30 +59,10 @@ def as_immutable(logger: TLLogger) -> TLLogger:
 
     .. deprecated:: 22.1.0
     """
-    _deprecated()
-    if isinstance(logger, BoundLoggerLazyProxy):
-        logger = logger.bind()
-
-    try:
-        ctx = logger._context._tl.dict_.__class__(  # type: ignore[union-attr]
-            logger._context._dict  # type: ignore[union-attr]
-        )
-        bl = logger.__class__(
-            logger._logger,  # type: ignore[attr-defined, call-arg]
-            processors=logger._processors,  # type: ignore[attr-defined]
-            context={},
-        )
-        bl._context = ctx  # type: ignore[misc]
-
-        return bl
-    except AttributeError:
-        return logger
-
+    pass
 
 @contextlib.contextmanager
-def tmp_bind(
-    logger: TLLogger, **tmp_values: Any
-) -> Generator[TLLogger, None, None]:
+def tmp_bind(logger: TLLogger, **tmp_values: Any) -> Generator[TLLogger, None, None]:
     """
     Bind *tmp_values* to *logger* & memorize current state. Rewind afterwards.
 
@@ -147,17 +71,7 @@ def tmp_bind(
 
     .. deprecated:: 22.1.0
     """
-    _deprecated()
-    if isinstance(logger, BoundLoggerLazyProxy):
-        logger = logger.bind()
-
-    saved = as_immutable(logger)._context
-    try:
-        yield logger.bind(**tmp_values)
-    finally:
-        logger._context.clear()
-        logger._context.update(saved)
-
+    pass
 
 class _ThreadLocalDictWrapper:
     """
@@ -170,7 +84,6 @@ class _ThreadLocalDictWrapper:
     Use :func:`wrap` to instantiate and use
     :func:`structlog.BoundLogger.new` to clear the context.
     """
-
     _tl: Any
     _dict_class: type[dict[str, Any]]
 
@@ -179,8 +92,6 @@ class _ThreadLocalDictWrapper:
         We cheat.  A context dict gets never recreated.
         """
         if args and isinstance(args[0], self.__class__):
-            # our state is global, no need to look at args[0] if it's of our
-            # class
             self._dict.update(**kw)
         else:
             self._dict.update(*args, **kw)
@@ -190,25 +101,17 @@ class _ThreadLocalDictWrapper:
         """
         Return or create and return the current context.
         """
-        try:
-            return self.__class__._tl.dict_
-        except AttributeError:
-            self.__class__._tl.dict_ = self.__class__._dict_class()
-
-            return self.__class__._tl.dict_
+        pass
 
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}({self._dict!r})>"
+        return f'<{self.__class__.__name__}({self._dict!r})>'
 
     def __eq__(self, other: object) -> bool:
-        # Same class == same dictionary
         return self.__class__ == other.__class__
 
     def __ne__(self, other: object) -> bool:
         return not self.__eq__(other)
 
-    # Proxy methods necessary for structlog.
-    # Dunder methods don't trigger __getattr__ so we need to proxy by hand.
     def __iter__(self) -> Iterator[str]:
         return self._dict.__iter__()
 
@@ -223,10 +126,7 @@ class _ThreadLocalDictWrapper:
 
     def __getattr__(self, name: str) -> Any:
         return getattr(self._dict, name)
-
-
 _CONTEXT = threading.local()
-
 
 def get_threadlocal() -> Context:
     """
@@ -235,9 +135,7 @@ def get_threadlocal() -> Context:
     .. versionadded:: 21.2.0
     .. deprecated:: 22.1.0
     """
-    _deprecated()
-    return _get_context().copy()
-
+    pass
 
 def get_merged_threadlocal(bound_logger: BindableLogger) -> Context:
     """
@@ -247,16 +145,9 @@ def get_merged_threadlocal(bound_logger: BindableLogger) -> Context:
     .. versionadded:: 21.2.0
     .. deprecated:: 22.1.0
     """
-    _deprecated()
-    ctx = _get_context().copy()
-    ctx.update(structlog.get_context(bound_logger))
+    pass
 
-    return ctx
-
-
-def merge_threadlocal(
-    logger: WrappedLogger, method_name: str, event_dict: EventDict
-) -> EventDict:
+def merge_threadlocal(logger: WrappedLogger, method_name: str, event_dict: EventDict) -> EventDict:
     """
     A processor that merges in a global (thread-local) context.
 
@@ -271,16 +162,8 @@ def merge_threadlocal(
 
     .. deprecated:: 22.1.0
     """
-    _deprecated()
-    context = _get_context().copy()
-    context.update(event_dict)
-
-    return context
-
-
-# Alias that shouldn't be used anymore.
+    pass
 merge_threadlocal_context = merge_threadlocal
-
 
 def clear_threadlocal() -> None:
     """
@@ -292,9 +175,7 @@ def clear_threadlocal() -> None:
     .. versionadded:: 19.2.0
     .. deprecated:: 22.1.0
     """
-    _deprecated()
-    _CONTEXT.context = {}
-
+    pass
 
 def bind_threadlocal(**kw: Any) -> None:
     """
@@ -306,9 +187,7 @@ def bind_threadlocal(**kw: Any) -> None:
     .. versionadded:: 19.2.0
     .. deprecated:: 22.1.0
     """
-    _deprecated()
-    _get_context().update(kw)
-
+    pass
 
 def unbind_threadlocal(*keys: str) -> None:
     """
@@ -317,11 +196,7 @@ def unbind_threadlocal(*keys: str) -> None:
     .. versionadded:: 20.1.0
     .. deprecated:: 22.1.0
     """
-    _deprecated()
-    context = _get_context()
-    for key in keys:
-        context.pop(key, None)
-
+    pass
 
 @contextlib.contextmanager
 def bound_threadlocal(**kw: Any) -> Generator[None, None, None]:
@@ -334,22 +209,7 @@ def bound_threadlocal(**kw: Any) -> Generator[None, None, None]:
     .. versionadded:: 21.4.0
     .. deprecated:: 22.1.0
     """
-    _deprecated()
-    context = get_threadlocal()
-    saved = {k: context[k] for k in context.keys() & kw.keys()}
-
-    bind_threadlocal(**kw)
-    try:
-        yield
-    finally:
-        unbind_threadlocal(*kw.keys())
-        bind_threadlocal(**saved)
-
+    pass
 
 def _get_context() -> Context:
-    try:
-        return _CONTEXT.context
-    except AttributeError:
-        _CONTEXT.context = {}
-
-        return _CONTEXT.context
+    pass

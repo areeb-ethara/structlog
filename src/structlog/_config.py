@@ -1,85 +1,39 @@
-# SPDX-License-Identifier: MIT OR Apache-2.0
-# This file is dual licensed under the terms of the Apache License, Version
-# 2.0, and the MIT License.  See the LICENSE file in the root of this
-# repository for complete details.
-
 """
 Global state department.  Don't reload this module or everything breaks.
 """
-
 from __future__ import annotations
-
 import os
 import sys
 import warnings
-
 from collections.abc import Iterable, Sequence
 from typing import Any, Callable, cast
-
 from ._native import make_filtering_bound_logger
 from ._output import PrintLoggerFactory
 from .contextvars import merge_contextvars
 from .dev import ConsoleRenderer, _has_colors, set_exc_info
 from .processors import StackInfoRenderer, TimeStamper, add_log_level
 from .typing import BindableLogger, Context, Processor, WrappedLogger
-
-
-"""
-Any changes to these defaults must be reflected in:
-
-- `getting-started`.
-- structlog.stdlib.recreate_defaults()'s docstring.
-"""
-
-_no_colors = os.environ.get("NO_COLOR", "") != ""
-_force_colors = os.environ.get("FORCE_COLOR", "") != ""
-
-_BUILTIN_DEFAULT_PROCESSORS: Sequence[Processor] = [
-    merge_contextvars,
-    add_log_level,
-    StackInfoRenderer(),
-    set_exc_info,
-    TimeStamper(fmt="%Y-%m-%d %H:%M:%S", utc=False),
-    ConsoleRenderer(
-        colors=not _no_colors
-        and (
-            _force_colors
-            or (
-                _has_colors
-                and sys.stdout is not None
-                and hasattr(sys.stdout, "isatty")
-                and sys.stdout.isatty()
-            )
-        ),
-        force_colors=_force_colors,
-    ),
-]
+"\nAny changes to these defaults must be reflected in:\n\n- `getting-started`.\n- structlog.stdlib.recreate_defaults()'s docstring.\n"
+_no_colors = os.environ.get('NO_COLOR', '') != ''
+_force_colors = os.environ.get('FORCE_COLOR', '') != ''
+_BUILTIN_DEFAULT_PROCESSORS: Sequence[Processor] = [merge_contextvars, add_log_level, StackInfoRenderer(), set_exc_info, TimeStamper(fmt='%Y-%m-%d %H:%M:%S', utc=False), ConsoleRenderer(colors=not _no_colors and (_force_colors or (_has_colors and sys.stdout is not None and hasattr(sys.stdout, 'isatty') and sys.stdout.isatty())), force_colors=_force_colors)]
 _BUILTIN_DEFAULT_CONTEXT_CLASS = cast(type[Context], dict)
 _BUILTIN_DEFAULT_WRAPPER_CLASS = make_filtering_bound_logger(0)
 _BUILTIN_DEFAULT_LOGGER_FACTORY = PrintLoggerFactory()
 _BUILTIN_CACHE_LOGGER_ON_FIRST_USE = False
 
-
 class _Configuration:
     """
     Global defaults.
     """
-
     is_configured: bool = False
     default_processors: Iterable[Processor] = _BUILTIN_DEFAULT_PROCESSORS[:]
     default_context_class: type[Context] = _BUILTIN_DEFAULT_CONTEXT_CLASS
     default_wrapper_class: Any = _BUILTIN_DEFAULT_WRAPPER_CLASS
-    logger_factory: Callable[..., WrappedLogger] = (
-        _BUILTIN_DEFAULT_LOGGER_FACTORY
-    )
+    logger_factory: Callable[..., WrappedLogger] = _BUILTIN_DEFAULT_LOGGER_FACTORY
     cache_logger_on_first_use: bool = _BUILTIN_CACHE_LOGGER_ON_FIRST_USE
-
-
 _CONFIG = _Configuration()
-"""
-Global defaults used when arguments to `wrap_logger` are omitted.
-"""
-
+'\nGlobal defaults used when arguments to `wrap_logger` are omitted.\n'
 
 def is_configured() -> bool:
     """
@@ -89,8 +43,7 @@ def is_configured() -> bool:
 
     .. versionadded: 18.1.0
     """
-    return _CONFIG.is_configured
-
+    pass
 
 def get_config() -> dict[str, Any]:
     """
@@ -102,14 +55,7 @@ def get_config() -> dict[str, Any]:
 
     .. versionadded: 18.1.0
     """
-    return {
-        "processors": _CONFIG.default_processors,
-        "context_class": _CONFIG.default_context_class,
-        "wrapper_class": _CONFIG.default_wrapper_class,
-        "logger_factory": _CONFIG.logger_factory,
-        "cache_logger_on_first_use": _CONFIG.cache_logger_on_first_use,
-    }
-
+    pass
 
 def get_logger(*args: Any, **initial_values: Any) -> Any:
     """
@@ -140,27 +86,11 @@ def get_logger(*args: Any, **initial_values: Any) -> Any:
 
     .. versionadded:: 0.4.0 *args*
     """
-    return wrap_logger(None, logger_factory_args=args, **initial_values)
+    pass
+getLogger = get_logger
+"\nCamelCase alias for `structlog.get_logger`.\n\nThis function is supposed to be in every source file -- we don't want it to\nstick out like a sore thumb in frameworks like Twisted or Zope.\n"
 
-
-getLogger = get_logger  # noqa: N816
-"""
-CamelCase alias for `structlog.get_logger`.
-
-This function is supposed to be in every source file -- we don't want it to
-stick out like a sore thumb in frameworks like Twisted or Zope.
-"""
-
-
-def wrap_logger(
-    logger: WrappedLogger | None,
-    processors: Iterable[Processor] | None = None,
-    wrapper_class: type[BindableLogger] | None = None,
-    context_class: type[Context] | None = None,
-    cache_logger_on_first_use: bool | None = None,
-    logger_factory_args: Iterable[Any] | None = None,
-    **initial_values: Any,
-) -> Any:
+def wrap_logger(logger: WrappedLogger | None, processors: Iterable[Processor] | None=None, wrapper_class: type[BindableLogger] | None=None, context_class: type[Context] | None=None, cache_logger_on_first_use: bool | None=None, logger_factory_args: Iterable[Any] | None=None, **initial_values: Any) -> Any:
     """
     Create a new bound logger for an arbitrary *logger*.
 
@@ -188,24 +118,9 @@ def wrap_logger(
 
     .. versionadded:: 0.4.0 *logger_factory_args*
     """
-    return BoundLoggerLazyProxy(
-        logger,
-        wrapper_class=wrapper_class,
-        processors=processors,
-        context_class=context_class,
-        cache_logger_on_first_use=cache_logger_on_first_use,
-        initial_values=initial_values,
-        logger_factory_args=logger_factory_args,
-    )
+    pass
 
-
-def configure(
-    processors: Iterable[Processor] | None = None,
-    wrapper_class: type[BindableLogger] | None = None,
-    context_class: type[Context] | None = None,
-    logger_factory: Callable[..., WrappedLogger] | None = None,
-    cache_logger_on_first_use: bool | None = None,
-) -> None:
+def configure(processors: Iterable[Processor] | None=None, wrapper_class: type[BindableLogger] | None=None, context_class: type[Context] | None=None, logger_factory: Callable[..., WrappedLogger] | None=None, cache_logger_on_first_use: bool | None=None) -> None:
     """
     Configures the **global** defaults.
 
@@ -242,27 +157,9 @@ def configure(
 
     .. versionadded:: 0.3.0 *cache_logger_on_first_use*
     """
-    _CONFIG.is_configured = True
+    pass
 
-    if processors is not None:
-        _CONFIG.default_processors = processors
-    if wrapper_class is not None:
-        _CONFIG.default_wrapper_class = wrapper_class
-    if context_class is not None:
-        _CONFIG.default_context_class = context_class
-    if logger_factory is not None:
-        _CONFIG.logger_factory = logger_factory
-    if cache_logger_on_first_use is not None:
-        _CONFIG.cache_logger_on_first_use = cache_logger_on_first_use
-
-
-def configure_once(
-    processors: Iterable[Processor] | None = None,
-    wrapper_class: type[BindableLogger] | None = None,
-    context_class: type[Context] | None = None,
-    logger_factory: Callable[..., WrappedLogger] | None = None,
-    cache_logger_on_first_use: bool | None = None,
-) -> None:
+def configure_once(processors: Iterable[Processor] | None=None, wrapper_class: type[BindableLogger] | None=None, context_class: type[Context] | None=None, logger_factory: Callable[..., WrappedLogger] | None=None, cache_logger_on_first_use: bool | None=None) -> None:
     """
     Configures if structlog isn't configured yet.
 
@@ -272,19 +169,7 @@ def configure_once(
     Raises:
         RuntimeWarning: if repeated configuration is attempted.
     """
-    if not _CONFIG.is_configured:
-        configure(
-            processors=processors,
-            wrapper_class=wrapper_class,
-            context_class=context_class,
-            logger_factory=logger_factory,
-            cache_logger_on_first_use=cache_logger_on_first_use,
-        )
-    else:
-        warnings.warn(
-            "Repeated configuration attempted.", RuntimeWarning, stacklevel=2
-        )
-
+    pass
 
 def reset_defaults() -> None:
     """
@@ -292,13 +177,7 @@ def reset_defaults() -> None:
 
     `is_configured` starts returning `False` afterwards.
     """
-    _CONFIG.is_configured = False
-    _CONFIG.default_processors = _BUILTIN_DEFAULT_PROCESSORS[:]
-    _CONFIG.default_wrapper_class = _BUILTIN_DEFAULT_WRAPPER_CLASS
-    _CONFIG.default_context_class = _BUILTIN_DEFAULT_CONTEXT_CLASS
-    _CONFIG.logger_factory = _BUILTIN_DEFAULT_LOGGER_FACTORY
-    _CONFIG.cache_logger_on_first_use = _BUILTIN_CACHE_LOGGER_ON_FIRST_USE
-
+    pass
 
 class BoundLoggerLazyProxy:
     """
@@ -315,21 +194,11 @@ class BoundLoggerLazyProxy:
     .. versionchanged:: 0.4.0 Added support for *logger_factory_args*.
     """
 
-    # fulfill BindableLogger protocol without carrying accidental state
     @property
     def _context(self) -> dict[str, str]:
-        return self._initial_values
+        pass
 
-    def __init__(
-        self,
-        logger: WrappedLogger | None,
-        wrapper_class: type[BindableLogger] | None = None,
-        processors: Iterable[Processor] | None = None,
-        context_class: type[Context] | None = None,
-        cache_logger_on_first_use: bool | None = None,
-        initial_values: dict[str, Any] | None = None,
-        logger_factory_args: Any = None,
-    ) -> None:
+    def __init__(self, logger: WrappedLogger | None, wrapper_class: type[BindableLogger] | None=None, processors: Iterable[Processor] | None=None, context_class: type[Context] | None=None, cache_logger_on_first_use: bool | None=None, initial_values: dict[str, Any] | None=None, logger_factory_args: Any=None) -> None:
         self._logger = logger
         self._wrapper_class = wrapper_class
         self._processors = processors
@@ -339,57 +208,13 @@ class BoundLoggerLazyProxy:
         self._logger_factory_args = logger_factory_args or ()
 
     def __repr__(self) -> str:
-        return (
-            f"<BoundLoggerLazyProxy(logger={self._logger!r}, wrapper_class="
-            f"{self._wrapper_class!r}, processors={self._processors!r}, "
-            f"context_class={self._context_class!r}, "
-            f"initial_values={self._initial_values!r}, "
-            f"logger_factory_args={self._logger_factory_args!r})>"
-        )
+        return f'<BoundLoggerLazyProxy(logger={self._logger!r}, wrapper_class={self._wrapper_class!r}, processors={self._processors!r}, context_class={self._context_class!r}, initial_values={self._initial_values!r}, logger_factory_args={self._logger_factory_args!r})>'
 
     def bind(self, **new_values: Any) -> BindableLogger:
         """
         Assemble a new BoundLogger from arguments and configuration.
         """
-        if self._context_class:
-            ctx = self._context_class(self._initial_values)
-        else:
-            ctx = _CONFIG.default_context_class(self._initial_values)
-
-        _logger = self._logger
-        if not _logger:
-            _logger = _CONFIG.logger_factory(*self._logger_factory_args)
-
-        if self._processors is None:
-            procs = _CONFIG.default_processors
-        else:
-            procs = self._processors
-
-        cls = self._wrapper_class or _CONFIG.default_wrapper_class
-        # Looks like Protocols ignore definitions of __init__ so we have to
-        # silence Mypy here.
-        logger = cls(
-            _logger,
-            processors=procs,
-            context=ctx,  # type: ignore[call-arg]
-        )
-
-        def finalized_bind(**new_values: Any) -> BindableLogger:
-            """
-            Use cached assembled logger to bind potentially new values.
-            """
-            if new_values:
-                return logger.bind(**new_values)
-
-            return logger
-
-        if self._cache_logger_on_first_use is True or (
-            self._cache_logger_on_first_use is None
-            and _CONFIG.cache_logger_on_first_use is True
-        ):
-            self.bind = finalized_bind  # type: ignore[method-assign]
-
-        return finalized_bind(**new_values)
+        pass
 
     def unbind(self, *keys: str) -> BindableLogger:
         """
@@ -397,32 +222,25 @@ class BoundLoggerLazyProxy:
 
         In our case that could be only initial values.
         """
-        return self.bind().unbind(*keys)
+        pass
 
     def try_unbind(self, *keys: str) -> BindableLogger:
-        return self.bind().try_unbind(*keys)
+        pass
 
     def new(self, **new_values: Any) -> BindableLogger:
         """
         Clear context, then bind.
         """
-        if self._context_class:
-            self._context_class().clear()
-        else:
-            _CONFIG.default_context_class().clear()
-
-        return self.bind(**new_values)
+        pass
 
     def __getattr__(self, name: str) -> Any:
         """
         If a logging method if called on a lazy proxy, we have to create an
         ephemeral BoundLogger first.
         """
-        if name == "__isabstractmethod__":
+        if name == '__isabstractmethod__':
             raise AttributeError
-
         bl = self.bind()
-
         return getattr(bl, name)
 
     def __getstate__(self) -> dict[str, Any]:
